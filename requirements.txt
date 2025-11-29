@@ -1,11 +1,14 @@
 fastapi
 uvicorn
 playwright
+google-generativeai
+python-dotenv
 pandas
 requests
-openai
-httpx
-python-dotenv
 beautifulsoup4
+pdfplumber
+pillow
+scikit-learn
+faker
 pydantic
 google-generativeai>=0.8.3

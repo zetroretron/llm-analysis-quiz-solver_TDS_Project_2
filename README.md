@@ -1,3 +1,12 @@
+---
+title: LLM Analysis Quiz Solver
+emoji: 🤖
+colorFrom: blue
+colorTo: indigo
+sdk: docker
+pinned: false
+---
+
 # LLM Analysis Quiz Solver
 
 This project implements an API endpoint that solves data analysis quizzes using an LLM agent (OpenAI + Playwright).

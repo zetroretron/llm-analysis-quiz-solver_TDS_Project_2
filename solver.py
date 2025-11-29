@@ -59,6 +59,16 @@ async def solve_single_step(page, email: str, secret: str, current_url: str):
     Solves a single step of the quiz using Gemini.
     """
     logger.info(f"Navigating to {current_url}")
+    
+    # Add email parameter if URL doesn't have query params
+    # Some quizzes (like demo2) need email in URL to render properly
+    if '?' not in current_url:
+        # Check if it's a quiz that might need email parameter
+        needs_email = any(keyword in current_url for keyword in ['demo2', 'personalized', 'puzzle'])
+        if needs_email:
+            current_url = f"{current_url}?email={email}"
+            logger.info(f"Added email parameter: {current_url}")
+    
     await page.goto(current_url)
     
     html_content = await get_page_content(page)
@@ -102,6 +112,8 @@ async def solve_single_step(page, email: str, secret: str, current_url: str):
     You have access to a python environment with pandas, requests, beautifulsoup4.
     
     RESPONSE FORMAT (Strict JSON):
+    Return ONLY ONE of these actions:
+    
     If you need to calculate something:
     {
         "action": "code",
@@ -114,17 +126,37 @@ async def solve_single_step(page, email: str, secret: str, current_url: str):
         "answer": <JUST_THE_ANSWER_VALUE>
     }
     
+    CRITICAL FORMAT RULES:
+    - ALWAYS wrap your response in JSON with "action" and either "code" or "answer"
+    - NEVER return just a code block without the JSON wrapper
+    - NEVER return multiple code blocks
+    - DO NOT include markdown code fences (```) in your response
+    - DO NOT include explanatory text outside the JSON
+    
+    WRONG (will cause errors):
+    ```python
+    print(password)
+    ```
+    
+    CORRECT:
+    {"action": "code", "code": "print(password)"}
+    
+    DO NOT return multiple code blocks or mix code with submit actions!
+    
     IMPORTANT:
     - For "answer", provide ONLY the answer value (string, number, etc.)
     - Do NOT include email, secret, or url in the answer field
     - I will build the complete payload automatically
     - If your code produces an error, DO NOT submit the error message as the answer
     - Instead, debug and fix your code, then try again
+    - ALWAYS print() your final answer in code so I can see it
     
     CRITICAL RULES:
     - Return ONLY valid JSON. No conversational text.
     - Use the email and secret provided to you in your code if needed
     - The answer field should contain ONLY the answer to the question
+    - When converting JSON to DataFrame, use pd.DataFrame(json_data) not pd.DataFrame.from_dict()
+    - Always check data structure with print() before processing
     """
     
     user_prompt = f"""
@@ -216,6 +248,12 @@ async def solve_single_step(page, email: str, secret: str, current_url: str):
                 break
                 
         except Exception as e:
+            error_msg = str(e)
+            if "429" in error_msg or "Quota exceeded" in error_msg:
+                logger.warning("⚠️ Rate limit hit (429). Waiting 60 seconds before retrying...")
+                await asyncio.sleep(60)
+                continue  # Retry the loop
+            
             logger.error(f"Error in solver loop: {e}")
             break
             

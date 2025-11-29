@@ -8,3 +8,4 @@ httpx
 python-dotenv
 beautifulsoup4
 pydantic
+google-generativeai>=0.8.3

@@ -52,3 +52,15 @@ async def run_quiz(request: QuizRequest, background_tasks: BackgroundTasks):
 @app.get("/")
 async def root():
     return {"message": "LLM Analysis Quiz Solver is running"}
+
+# Add exception handler for validation errors (invalid JSON)
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request, exc):
+    return JSONResponse(
+        status_code=400,
+        content={"detail": "Invalid JSON payload"}
+    )
+

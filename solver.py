@@ -111,18 +111,20 @@ async def solve_single_step(page, email: str, secret: str, current_url: str):
     If you have the answer and are ready to submit:
     {
         "action": "submit",
-        "answer": ... # The answer (can be number, string, boolean, or JSON object)
+        "answer": <JUST_THE_ANSWER_VALUE>
     }
     
     IMPORTANT:
+    - For "answer", provide ONLY the answer value (string, number, etc.)
+    - Do NOT include email, secret, or url in the answer field
+    - I will build the complete payload automatically
     - If your code produces an error, DO NOT submit the error message as the answer
     - Instead, debug and fix your code, then try again
-    - Print intermediate results to help debug
-    - Check column names and data structure before accessing them
     
     CRITICAL RULES:
     - Return ONLY valid JSON. No conversational text.
     - Use the email and secret provided to you in your code if needed
+    - The answer field should contain ONLY the answer to the question
     """
     
     user_prompt = f"""

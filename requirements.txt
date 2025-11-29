@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+playwright
+pandas
+requests
+openai
+httpx
+python-dotenv
+beautifulsoup4
+pydantic

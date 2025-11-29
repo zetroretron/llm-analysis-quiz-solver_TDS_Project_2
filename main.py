@@ -1,0 +1,54 @@
+import os
+import logging
+from fastapi import FastAPI, HTTPException, BackgroundTasks
+from pydantic import BaseModel, HttpUrl
+from typing import Optional, Dict, Any
+from dotenv import load_dotenv
+
+# Load env vars
+load_dotenv()
+
+# Initialize logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+app = FastAPI()
+
+class QuizRequest(BaseModel):
+    email: str
+    secret: str
+    url: HttpUrl
+    # Allow extra fields
+    model_config = {
+        "extra": "allow"
+    }
+
+from solver import solve_quiz
+
+# Load secret from environment variable
+STUDENT_SECRET = os.getenv("STUDENT_SECRET", "default_secret_for_testing")
+
+async def solve_quiz_task(email: str, secret: str, start_url: str):
+    """
+    Background task to solve the quiz.
+    """
+    logger.info(f"Starting quiz solver for {email} at {start_url}")
+    await solve_quiz(email, secret, start_url)
+
+@app.post("/run")
+async def run_quiz(request: QuizRequest, background_tasks: BackgroundTasks):
+    """
+    Endpoint to trigger the quiz solver.
+    """
+    # Verify secret
+    if request.secret != STUDENT_SECRET:
+        raise HTTPException(status_code=403, detail="Invalid secret")
+
+    # Dispatch background task
+    background_tasks.add_task(solve_quiz_task, request.email, request.secret, str(request.url))
+
+    return {"message": "Quiz solver started", "status": "processing"}
+
+@app.get("/")
+async def root():
+    return {"message": "LLM Analysis Quiz Solver is running"}

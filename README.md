@@ -1,4 +1,4 @@
-# # 🤖 LLM Analysis Quiz Solver
+# 🤖 LLM Analysis Quiz Solver
 
 > An autonomous AI agent that intelligently solves data analysis quizzes using LLM reasoning, browser automation, and code execution
 
